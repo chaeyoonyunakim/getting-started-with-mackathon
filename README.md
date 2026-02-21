@@ -1,4 +1,7 @@
-# 🌈 Makaton Choice Board (AI-Adaptive)
+[![status: experimental](https://github.com/GIScience/badges/raw/master/status/experimental.svg)](https://github.com/GIScience/badges#experimental)
+
+# 🌈 MakaMind
+An AI-adaptive communication ecosystem for SEND students. Powered by Gemini 1.5 Flash & Nano Banana. Built for the {Tech: Europe} London AI Hackathon.
 
 **Live Demo:** [makaton.lovable.app](https://makaton.lovable.app)
 
@@ -35,58 +38,12 @@ An intelligent, accessible communication board designed for Special Educational 
 
 *Frontend also uses TypeScript, shadcn-ui, and Tailwind CSS.*
 
-### Setup & Installation
-
-```sh
-# 1. Clone the repo
-git clone https://github.com/chaeyoonyunakim/getting-started-with-mackathon.git
-cd getting-started-with-mackathon
-
-# 2. Install dependencies
-npm install
-
-# 3. Configure environment variables in the CodeWords backend
-#    - SLACK_WEBHOOK  (for TA alerts)
-#    - GITHUB_TOKEN   (for automated commits)
-
-# 4. Run locally
-npm run dev
-```
-
----
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and start prompting. Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-See **Setup & Installation** above. Ensure Node.js & npm are installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating). Pushed changes will be reflected in Lovable.
-
-**Edit a file directly in GitHub**
-
-Navigate to the desired file(s), click the "Edit" button (pencil icon), make your changes and commit.
-
-**Use GitHub Codespaces**
-
-Navigate to the main page of the repository → Code → Codespaces → New codespace. Edit files and commit/push when done.
-
-## How can I deploy this project?
-
-The app is live at [makaton.lovable.app](https://makaton.lovable.app). To redeploy, open the [Lovable project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and click Share → Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes. Go to **Project > Settings > Domains** and click **Connect Domain**. See [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain).
-
----
-
 ## 🎨 Dataset & Image Standards
 
 All imagery—static and AI-synthesized—adheres to [UK Makaton standards](https://makaton.assetbank-server.com/assetbank-makaton/action/browseItems?categoryId=3257&categoryTypeId=2&cachedCriteria=1). Symbols are sourced from the Makaton Asset Bank. When a sign is missing from the local library, Nano Banana Pro generates it using the Asset Bank's black-on-white line-art style. AI-generated signs require TA verification via **Verify & Save** before being committed to the permanent library.
 
 **Local symbols:** [public/symbols](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/tree/main/public/symbols)
+
+## Open Source & Standards Compliance:
+- License: [MIT License](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/blob/main/LICENSE)
+- Code of Conduct: [Contributor Covenant](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/blob/main/CODE_OF_CONDUCT.md)

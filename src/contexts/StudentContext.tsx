@@ -9,10 +9,14 @@ interface StudentContextType {
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
 
 export const StudentProvider = ({ children }: { children: ReactNode }) => {
-  const [currentStudent, setCurrentStudentRaw] = useState("");
+  const [currentStudent, setCurrentStudentRaw] = useState(() => {
+    try { return localStorage.getItem("currentStudent") ?? ""; } catch { return ""; }
+  });
 
   const setCurrentStudent = useCallback((name: string) => {
-    setCurrentStudentRaw(name.trim());
+    const trimmed = name.trim();
+    setCurrentStudentRaw(trimmed);
+    try { localStorage.setItem("currentStudent", trimmed); } catch {}
   }, []);
 
   return (

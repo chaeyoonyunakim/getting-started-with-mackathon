@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { ArrowLeft, Loader2, X, Sparkles } from "lucide-react";
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem } from "@/types/choiceBoard";
@@ -10,6 +11,36 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+/** Convert a React SVG icon element to a base64 PNG data URL */
+async function iconToBase64(iconElement: React.ReactNode): Promise<string> {
+  const svgMarkup = renderToStaticMarkup(
+    <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+      <rect width="256" height="256" fill="white" />
+      <g transform="translate(28,28)" stroke="currentColor" fill="none" strokeWidth="2" color="black">
+        {iconElement}
+      </g>
+    </svg>
+  );
+
+  const blob = new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
 const ChoiceCard = ({
   item,
@@ -177,35 +208,41 @@ const ChoiceBoard = () => {
   }, []);
 
   const handleSubItemSelect = useCallback(
-    (item: ChoiceItem) => {
+    async (item: ChoiceItem) => {
       const newSelections = [...selectionsRef.current, item.label];
       selectionsRef.current = newSelections;
       const newCount = selectionCount + 1;
       setSelectionCount(newCount);
 
-      // Every 3 selections → trigger reward
+      // Every 3 selections → trigger golden reward
       if (newCount % 3 === 0) {
         setRewardLoading(true);
         setRewardImage(null);
         setRewardOpen(true);
 
-        supabase.functions
-          .invoke("makaton-reward", {
-            body: { selections: newSelections.slice(-3) },
-          })
-          .then(({ data, error }) => {
-            if (error) throw error;
-            const imgUrl =
-              data?.image || data?.image_url || data?.url || data?.result || null;
-            setRewardImage(imgUrl);
-          })
-          .catch(() => {
-            toast.error("Reward couldn't load", {
-              description: "But great job picking 3 things! ⭐",
-            });
-            setRewardOpen(false);
-          })
-          .finally(() => setRewardLoading(false));
+        try {
+          // Capture the icon of the last selected item as a base64 PNG
+          const base64 = await iconToBase64(item.icon);
+
+          const vibrantColors = ["Gold", "Electric Blue", "Hot Pink", "Lime Green", "Vivid Orange"];
+          const color = vibrantColors[Math.floor(Math.random() * vibrantColors.length)];
+
+          const { data, error } = await supabase.functions.invoke("makaton-reward", {
+            body: { image: base64, color },
+          });
+
+          if (error) throw error;
+
+          const imgUrl = data?.image || null;
+          setRewardImage(imgUrl);
+        } catch {
+          toast.error("Reward couldn't load", {
+            description: "But great job picking 3 things! ⭐",
+          });
+          setRewardOpen(false);
+        } finally {
+          setRewardLoading(false);
+        }
       }
     },
     [selectionCount]

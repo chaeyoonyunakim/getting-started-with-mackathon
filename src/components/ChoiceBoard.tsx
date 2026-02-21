@@ -95,26 +95,25 @@ const ChoiceCard = ({
         className={`
           bg-card border-4 ${item.colorClass.replace("bg-", "border-")}
           rounded-2xl shadow-md w-full aspect-square
-          flex flex-col items-center justify-center gap-3 p-4
+          flex flex-col items-center justify-end p-0
           transition-all duration-150
           hover:scale-[1.03] active:scale-95
           focus:outline-none focus:ring-4 focus:ring-ring/50
           ${popping ? "animate-pop" : ""}
           ${success ? "ring-4 ring-green-400" : ""}
           cursor-pointer select-none
-          relative
+          relative overflow-hidden
         `}
         aria-label={item.label}
       >
-        {/* Makaton symbol area — image centered, label underneath */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
+        {/* Image fills card */}
+        <div className="absolute inset-0 flex items-center justify-center">
           {item.imagePath ? (
             <img
               src={item.imagePath}
               alt={`${item.label} Makaton sign`}
-              className="w-full h-full object-contain rounded-xl"
+              className="w-full h-full object-contain"
               onError={(e) => {
-                // Asset bank may require auth — hide broken image, show placeholder
                 (e.currentTarget as HTMLImageElement).style.display = "none";
                 e.currentTarget.parentElement
                   ?.querySelector<HTMLDivElement>("[data-placeholder]")
@@ -122,11 +121,12 @@ const ChoiceCard = ({
               }}
             />
           ) : null}
-          <div data-placeholder hidden={!!item.imagePath ? true : undefined} className={item.imagePath ? "" : "w-full h-full"}>
+          <div data-placeholder hidden={!!item.imagePath ? true : undefined} className={item.imagePath ? "" : "w-3/4 h-3/4"}>
             <MakatonPlaceholder label={item.label} />
           </div>
         </div>
-        <span className="text-lg sm:text-xl md:text-2xl font-extrabold text-foreground tracking-wide">
+        {/* Label overlay at bottom */}
+        <span className="relative z-10 w-full text-center bg-card/80 backdrop-blur-sm text-sm sm:text-base font-bold text-foreground py-1.5">
           {item.label}
         </span>
       </button>

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ArrowLeft, Loader2, X, Sparkles, Info, Check } from "lucide-react";
+import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw } from "lucide-react";
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,6 +219,22 @@ const ChoiceBoard = () => {
   // Rationale from greeting response
   const [lastRationale, setLastRationale] = useState<string | null>(null);
 
+  // Reset confirmation
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
+  const handleFullReset = useCallback(() => {
+    setActiveCategory(null);
+    setGreeting("");
+    setGreetingLoading(false);
+    setSelectionCount(0);
+    selectionsRef.current = [];
+    setRewardImage(null);
+    setRewardLoading(false);
+    setRewardOpen(false);
+    setLastRationale(null);
+    setResetConfirmOpen(false);
+  }, []);
+
   const fetchGreeting = useCallback(async (category: Category) => {
     setGreetingLoading(true);
     setGreeting("");
@@ -298,7 +314,23 @@ const ChoiceBoard = () => {
   const items = activeCategory ? activeCategory.items : categories;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6">
+    <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6 relative">
+      {/* Start Again button — top-right */}
+      <button
+        onClick={() => setResetConfirmOpen(true)}
+        className="
+          absolute top-6 right-4 z-20
+          flex items-center gap-2
+          bg-destructive text-destructive-foreground
+          rounded-xl px-4 py-3 text-lg font-bold
+          shadow-lg transition-transform hover:scale-105 active:scale-95
+          focus:outline-none focus:ring-4 focus:ring-ring/50
+        "
+        aria-label="Start again"
+      >
+        <RotateCcw className="w-6 h-6" />
+        <span className="hidden sm:inline">Start Again</span>
+      </button>
       {activeCategory && (
         <button
           onClick={handleBack}
@@ -367,6 +399,31 @@ const ChoiceBoard = () => {
               className="w-full max-w-sm rounded-2xl shadow-lg border border-border"
             />
           ) : null}
+        </DialogContent>
+      </Dialog>
+      {/* Reset confirmation modal */}
+      <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <DialogContent className="sm:max-w-sm flex flex-col items-center gap-6 py-8">
+          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center">
+            Start Again?
+          </DialogTitle>
+          <DialogDescription className="text-center text-lg text-muted-foreground">
+            This will reset everything back to the beginning.
+          </DialogDescription>
+          <div className="flex gap-4 w-full">
+            <button
+              onClick={() => setResetConfirmOpen(false)}
+              className="flex-1 bg-secondary text-secondary-foreground rounded-xl px-6 py-4 text-xl font-bold shadow-md transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-ring/50"
+            >
+              No
+            </button>
+            <button
+              onClick={handleFullReset}
+              className="flex-1 bg-destructive text-destructive-foreground rounded-xl px-6 py-4 text-xl font-bold shadow-md transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-ring/50"
+            >
+              Yes
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

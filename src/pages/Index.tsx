@@ -1,7 +1,11 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Header from "@/components/Header";
 
 const Index = () => {
-  return <div className="min-h-screen bg-background" />;
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+    </div>
+  );
 };
 
 export default Index;

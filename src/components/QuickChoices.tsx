@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
-import { toast } from "sonner";
 import MakatonPlaceholder from "@/components/MakatonPlaceholder";
 
 interface PredictedSign {
@@ -27,7 +26,6 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
   const { currentStudent, isProfileSet } = useStudent();
   const [predictions, setPredictions] = useState<PredictedSign[]>([]);
   const [loading, setLoading] = useState(false);
-  const sendingRef = useRef<Set<string>>(new Set());
 
   const isFirstSession = historyLog.length === 0;
 
@@ -74,31 +72,8 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
     return () => { cancelled = true; };
   }, [currentStudent, category, isProfileSet, historyLog.length, isFirstSession]);
 
-  const handleClick = async (sign: PredictedSign) => {
-    if (sendingRef.current.has(sign.label)) return;
-    sendingRef.current.add(sign.label);
-
+  const handleClick = (sign: PredictedSign) => {
     onSelect(sign.label);
-
-    supabase.functions
-      .invoke("makaton-notifier", {
-        body: { child_name: currentStudent, selection: sign.label },
-      })
-      .then(({ error }) => {
-        if (error) {
-          const msg = typeof error === "object" && "message" in error ? (error as any).message : String(error);
-          if (msg.includes("429") || msg.toLowerCase().includes("rate limit")) {
-            toast.error("Slow down! 🐢", {
-              description: "Too many requests — please wait a moment.",
-              duration: 5000,
-            });
-          }
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        sendingRef.current.delete(sign.label);
-      });
   };
 
   if (!isProfileSet) return null;

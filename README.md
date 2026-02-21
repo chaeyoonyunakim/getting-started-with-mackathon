@@ -1,8 +1,47 @@
-# Welcome to your Lovable project
+# 🌈 Makaton Choice Board (AI-Adaptive)
+
+**Live Demo:** [makaton.lovable.app](https://makaton.lovable.app)
+
+An intelligent, accessible communication board designed for Special Educational Needs (SEND) environments. This app bridges the gap between static physical playbooks and dynamic student needs using **Gemini 1.5 Flash** and **DeepMind Nano Banana**.
+
+## 🚀 Key Features
+
+- **3-Step Communication Flow:** Navigates from Category → Object → Intent to reduce cognitive load for the student.
+- **Predictive Quick-Choices:** Uses Gemini 1.5 Flash to analyze student history and suggest the 3 most likely signs, reducing choice fatigue.
+- **AI-Synthesized Library:** If a Makaton sign is missing from the local library, Nano Banana Pro generates a technically accurate line-art diagram on the fly.
+- **Human-in-the-Loop (Save to Repo):** Teaching Assistants can verify AI-generated signs and "Commit" them to the GitHub repository with one click to permanently expand the library.
+- **High-Contrast Mode:** One-touch toggle for a yellow/black high-visibility theme, adhering to UK SEND visual standards.
+- **TA Insights via Slack:** Instant notifications to the teacher with "Reasoning" threads powered by Gemini to explain the child's communication patterns.
+
+## 🛠️ The Tech Stack
+
+| Component        | Technology                    |
+|-----------------|-------------------------------|
+| Frontend        | React / Vite (via Lovable)    |
+| Backend / API   | CodeWords (Agemo)             |
+| Predictive AI   | Gemini 1.5 Flash (Low Latency)|
+| Image AI        | DeepMind Nano Banana Pro      |
+| Real-time Alerts| Slack API (Block Kit)         |
+| Storage         | GitHub (for official Makaton symbols) |
+
+## 📐 How it Works (Architecture)
+
+1. **Selection:** A child makes a choice on the tablet.
+2. **Processing:** CodeWords checks if the image exists. If missing, Nano Banana generates it.
+3. **Notification:** The TA receives a Slack message with a "Why?" button for pedagogical rationale.
+4. **Reward:** Upon a 3-step sequence, the student receives a "Golden Sign" visual reward.
+
+## 📥 Local Assets
+
+Official Makaton UK Playbook symbols are stored and referenced from:
+
+**[public/symbols](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/tree/main/public/symbols)**
+
+---
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+**Lovable project:** https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b
 
 ## How can I edit this code?
 
@@ -10,45 +49,26 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
+Simply visit the [Lovable Project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and start prompting. Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Clone this repo and push changes. Pushed changes will also be reflected in Lovable. The only requirement is having Node.js & npm installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+git clone https://github.com/chaeyoonyunakim/getting-started-with-mackathon.git
+cd getting-started-with-mackathon
 npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
 **Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Navigate to the desired file(s), click the "Edit" button (pencil icon), make your changes and commit.
 
 **Use GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Navigate to the main page of the repository → Code → Codespaces → New codespace. Edit files and commit/push when done.
 
 ## What technologies are used for this project?
 
@@ -62,12 +82,8 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+The app is live at [makaton.lovable.app](https://makaton.lovable.app). To redeploy or update, open your [Lovable project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and click Share → Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Yes. Go to **Project > Settings > Domains** and click **Connect Domain**. See [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain).

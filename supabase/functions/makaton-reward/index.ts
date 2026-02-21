@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = `Keep the exact shape and lines of this Makaton diagram. Change only the stroke color to a vibrant ${color || "Gold"} and add a soft glowing yellow aura around the edges. Do not change the person, hands, or background. Preserve the original line art perfectly.`;
+    const prompt = `Take the provided Makaton diagram as a reference. Do NOT change the shape, line weight, or characters. Simply change the black lines to a vibrant ${color || "Electric Blue"} and add a soft glowing background. Keep the technical integrity of the sign perfect.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

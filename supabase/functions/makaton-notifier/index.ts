@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { selection } = await req.json();
+    const { selection, child_name } = await req.json();
 
     const res = await fetch(
       "https://runtime.codewords.ai/run/makaton_board_notifier_b9732208/",
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_TOKEN}`,
         },
-        body: JSON.stringify({ child_name: "Sam", selection }),
+        body: JSON.stringify({ child_name: child_name || "Sam", selection }),
       }
     );
 

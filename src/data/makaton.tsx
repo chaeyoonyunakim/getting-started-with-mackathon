@@ -7,7 +7,15 @@ import { Category } from "@/types/choiceBoard";
  * If an image isn't available yet the MakatonPlaceholder fallback is shown.
  */
 
+/** Try local first, GitHub repo as secondary source */
+const GITHUB_SYMBOLS_BASE =
+  "https://raw.githubusercontent.com/chaeyoonyunakim/getting-started-with-mackathon/main/public/symbols";
+
 const symbolPath = (name: string) => `/symbols/${name}.png`;
+
+/** GitHub-hosted fallback URL for a symbol */
+export const githubSymbolUrl = (name: string) =>
+  `${GITHUB_SYMBOLS_BASE}/${encodeURIComponent(name)}.png`;
 
 export const categories: Category[] = [
   {

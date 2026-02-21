@@ -95,7 +95,7 @@ const ChoiceCard = ({
         className={`
           bg-card border-4 ${item.colorClass.replace("bg-", "border-")}
           rounded-2xl shadow-md w-full aspect-square
-          flex flex-col items-center justify-end p-0
+          flex items-center justify-center p-0
           transition-all duration-150
           hover:scale-[1.03] active:scale-95
           focus:outline-none focus:ring-4 focus:ring-ring/50
@@ -106,29 +106,22 @@ const ChoiceCard = ({
         `}
         aria-label={item.label}
       >
-        {/* Image fills card */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          {item.imagePath ? (
-            <img
-              src={item.imagePath}
-              alt={`${item.label} Makaton sign`}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
-                e.currentTarget.parentElement
-                  ?.querySelector<HTMLDivElement>("[data-placeholder]")
-                  ?.removeAttribute("hidden");
-              }}
-            />
-          ) : null}
-          <div data-placeholder hidden={!!item.imagePath ? true : undefined} className={item.imagePath ? "" : "w-3/4 h-3/4"}>
-            <MakatonPlaceholder label={item.label} />
-          </div>
+        {item.imagePath ? (
+          <img
+            src={item.imagePath}
+            alt={`${item.label} Makaton sign`}
+            className="absolute inset-0 w-full h-full object-contain"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+              e.currentTarget.parentElement
+                ?.querySelector<HTMLDivElement>("[data-placeholder]")
+                ?.removeAttribute("hidden");
+            }}
+          />
+        ) : null}
+        <div data-placeholder hidden={!!item.imagePath ? true : undefined} className={item.imagePath ? "hidden" : "w-3/4 h-3/4"}>
+          <MakatonPlaceholder label={item.label} />
         </div>
-        {/* Label overlay at bottom */}
-        <span className="relative z-10 w-full text-center bg-card/80 backdrop-blur-sm text-sm sm:text-base font-bold text-foreground py-1.5">
-          {item.label}
-        </span>
       </button>
 
       {/* TA Notified badge + rationale tooltip */}
@@ -371,7 +364,7 @@ const ChoiceBoard = () => {
         />
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full animate-fade-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full animate-fade-in">
         {items.map((item) => (
           <ChoiceCard
             key={item.id}

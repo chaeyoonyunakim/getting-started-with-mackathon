@@ -361,6 +361,7 @@ const ChoiceBoard = () => {
       <QuickChoices
         category={activeCategory?.label}
         highContrast={highContrast}
+        historyLog={selectionsRef.current}
         onSelect={(label) => {
           const fakeItem: ChoiceItem = {
             id: `quick-${label}`,

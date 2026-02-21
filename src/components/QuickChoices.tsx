@@ -13,6 +13,7 @@ interface PredictedSign {
 interface QuickChoicesProps {
   category?: string;
   highContrast: boolean;
+  historyLog: string[];
   onSelect: (label: string) => void;
 }
 
@@ -22,7 +23,7 @@ const resolveImage = (label: string): string | undefined => {
   return `/symbols/${name}.png`;
 };
 
-const QuickChoices = ({ category, highContrast, onSelect }: QuickChoicesProps) => {
+const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickChoicesProps) => {
   const { currentStudent, isProfileSet } = useStudent();
   const [predictions, setPredictions] = useState<PredictedSign[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,11 @@ const QuickChoices = ({ category, highContrast, onSelect }: QuickChoicesProps) =
       setPredictions([]);
       try {
         const { data, error } = await supabase.functions.invoke("makaton-predict", {
-          body: { child_name: currentStudent, category: category || "" },
+          body: {
+            child_name: currentStudent,
+            category: category || "",
+            history_log: historyLog.length > 0 ? historyLog : [category || "general"],
+          },
         });
         if (error) throw error;
 
@@ -65,7 +70,7 @@ const QuickChoices = ({ category, highContrast, onSelect }: QuickChoicesProps) =
 
     fetchPredictions();
     return () => { cancelled = true; };
-  }, [currentStudent, category, isProfileSet]);
+  }, [currentStudent, category, isProfileSet, historyLog.length]);
 
   const handleClick = async (sign: PredictedSign) => {
     if (sendingRef.current.has(sign.label)) return;

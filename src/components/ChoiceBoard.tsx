@@ -72,9 +72,10 @@ const ChoiceCard = ({
   const [popping, setPopping] = useState(false);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
+  const sendingRef = useRef(false);
 
   const handleClick = async () => {
-    if (sending) return;
+    if (sendingRef.current || sending) return;
 
     if (!isSubItem) {
       setPopping(true);
@@ -86,6 +87,7 @@ const ChoiceCard = ({
     }
 
     // Sub-item: send to CodeWords
+    sendingRef.current = true;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("makaton-notifier", {
@@ -102,6 +104,7 @@ const ChoiceCard = ({
         description: "Failed to send selection.",
       });
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   };

@@ -20,14 +20,6 @@ An intelligent, accessible communication board designed for Special Educational 
 3. **Notification:** The TA receives a Slack message with a "Why?" button for pedagogical rationale.
 4. **Reward:** Upon a 3-step sequence, the student receives a "Golden Sign" visual reward.
 
-## 📥 Local Assets
-
-Official Makaton UK Playbook symbols are stored and referenced from:
-
-**[public/symbols](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/tree/main/public/symbols)**
-
----
-
 ## Technical Documentation
 
 ### APIs & Frameworks Used
@@ -90,3 +82,11 @@ The app is live at [makaton.lovable.app](https://makaton.lovable.app). To redepl
 ## Can I connect a custom domain to my Lovable project?
 
 Yes. Go to **Project > Settings > Domains** and click **Connect Domain**. See [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain).
+
+---
+
+## 🎨 Dataset & Image Standards
+
+All imagery—static and AI-synthesized—adheres to [UK Makaton standards](https://makaton.assetbank-server.com/assetbank-makaton/action/browseItems?categoryId=3257&categoryTypeId=2&cachedCriteria=1). Symbols are sourced from the Makaton Asset Bank. When a sign is missing from the local library, Nano Banana Pro generates it using the Asset Bank's black-on-white line-art style. AI-generated signs require TA verification via **Verify & Save** before being committed to the permanent library.
+
+**Local symbols:** [public/symbols](https://github.com/chaeyoonyunakim/getting-started-with-mackathon/tree/main/public/symbols)

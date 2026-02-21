@@ -18,16 +18,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { image, color } = await req.json();
+    const { makatonId, assetUrl, label, color } = await req.json();
 
-    if (!image) {
-      return new Response(JSON.stringify({ error: "Missing image data" }), {
+    if (!makatonId) {
+      return new Response(JSON.stringify({ error: "Missing makatonId" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const prompt = `Take the provided Makaton diagram as a reference. Do NOT change the shape, line weight, or characters. Simply change the black lines to a vibrant ${color || "Electric Blue"} and add a soft glowing background. Keep the technical integrity of the sign perfect.`;
+    const prompt = `You are given a Makaton sign diagram reference for "${label || "unknown"}" (Makaton Asset Bank ID: ${makatonId}, URL: ${assetUrl || "N/A"}). Generate a version of this Makaton sign where the black lines are changed to a vibrant ${color || "Electric Blue"} and add a soft glowing background. Keep the technical integrity of the sign perfect — do NOT change the shape, line weight, or characters.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -40,10 +40,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: [
-              { type: "text", text: prompt },
-              { type: "image_url", image_url: { url: image } },
-            ],
+            content: prompt,
           },
         ],
         modalities: ["image", "text"],

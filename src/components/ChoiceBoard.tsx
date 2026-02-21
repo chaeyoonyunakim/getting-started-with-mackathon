@@ -145,7 +145,7 @@ const ChoiceCard = ({
         </div>
       </button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-sm font-medium">
+          <TooltipContent side="top" className="text-lg font-semibold px-4 py-2">
             {item.label}
           </TooltipContent>
         </Tooltip>

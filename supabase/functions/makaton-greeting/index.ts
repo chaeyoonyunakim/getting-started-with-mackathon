@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${API_TOKEN}`,
         },
-        body: JSON.stringify({ child_name: "Sam", category }),
+        body: JSON.stringify({ child_name: "Sam", selection: category }),
       }
     );
 

@@ -96,7 +96,18 @@ const ChoiceCard = ({
         body: { child_name: currentStudent, selection: item.label },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check for rate limiting (429)
+        const errMsg = typeof error === "object" && "message" in error ? (error as any).message : String(error);
+        if (errMsg.includes("429") || errMsg.toLowerCase().includes("rate limit") || errMsg.toLowerCase().includes("too many")) {
+          toast.error("Slow down! 🐢", {
+            description: "Too many requests — please wait a moment and try again.",
+            duration: 5000,
+          });
+          return;
+        }
+        throw error;
+      }
 
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);

@@ -1,11 +1,11 @@
 import { useState, useCallback, useRef } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw } from "lucide-react";
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
+import MakatonPlaceholder from "@/components/MakatonPlaceholder";
 import {
   Dialog,
   DialogContent,
@@ -19,34 +19,38 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-/** Convert a React SVG icon element to a base64 PNG data URL */
-async function iconToBase64(iconElement: React.ReactNode): Promise<string> {
-  const svgMarkup = renderToStaticMarkup(
-    <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-      <rect width="256" height="256" fill="white" />
-      <g transform="translate(28,28)" stroke="currentColor" fill="none" strokeWidth="2" color="black">
-        {iconElement}
-      </g>
-    </svg>
-  );
+/** Convert a card's image to a base64 PNG for the reward endpoint */
+async function itemToBase64(item: ChoiceItem): Promise<string> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d")!;
 
-  const blob = new Blob([svgMarkup], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+  if (item.imagePath) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, 256, 256);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = item.imagePath!;
+    });
+  }
 
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 256;
-      canvas.height = 256;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+  // Placeholder: white bg, bold letter
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.strokeStyle = "#1a1a2e";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(12, 12, 232, 232);
+  ctx.fillStyle = "#1a1a2e";
+  ctx.font = "bold 140px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(item.label.charAt(0).toUpperCase(), 128, 128);
+  return canvas.toDataURL("image/png");
 }
 
 /* "TA Notified" badge shown after a sub-item is sent */
@@ -128,10 +132,10 @@ const ChoiceCard = ({
         onClick={handleClick}
         disabled={sending}
         className={`
-          ${item.colorClass} 
-          rounded-2xl shadow-lg w-full
-          flex flex-col items-center justify-center gap-3 p-6
-          transition-all duration-150 
+          bg-card border-4 ${item.colorClass.replace("bg-", "border-")}
+          rounded-2xl shadow-md w-full aspect-square
+          flex flex-col items-center justify-center gap-3 p-4
+          transition-all duration-150
           hover:scale-[1.03] active:scale-95
           focus:outline-none focus:ring-4 focus:ring-ring/50
           ${popping ? "animate-pop" : ""}
@@ -146,10 +150,19 @@ const ChoiceCard = ({
             <Loader2 className="w-10 h-10 text-white animate-spin" />
           </div>
         )}
-        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-white drop-shadow-md">
-          {item.icon}
+        {/* Makaton symbol area — image centered, label underneath */}
+        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
+          {item.imagePath ? (
+            <img
+              src={item.imagePath}
+              alt={`${item.label} Makaton sign`}
+              className="w-full h-full object-contain rounded-xl"
+            />
+          ) : (
+            <MakatonPlaceholder label={item.label} />
+          )}
         </div>
-        <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-sm tracking-wide">
+        <span className="text-lg sm:text-xl md:text-2xl font-extrabold text-foreground tracking-wide">
           {item.label}
         </span>
       </button>
@@ -302,7 +315,7 @@ const ChoiceBoard = () => {
         setRewardOpen(true);
 
         try {
-          const base64 = await iconToBase64(item.icon);
+          const base64 = await itemToBase64(item);
 
           const { data, error } = await supabase.functions.invoke("makaton-reward", {
             body: { image: base64, color: "Electric Blue" },

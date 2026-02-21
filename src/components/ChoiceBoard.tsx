@@ -100,6 +100,9 @@ const ChoiceCard = ({
 
   return (
     <div className="relative">
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
       <button
         onClick={handleClick}
         disabled={disabled}
@@ -141,6 +144,12 @@ const ChoiceCard = ({
           <MakatonPlaceholder label={item.label} />
         </div>
       </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-sm font-medium">
+            {item.label}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {/* TA Notified badge + rationale tooltip */}
       {success && isSubItem && (

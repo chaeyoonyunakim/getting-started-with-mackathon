@@ -200,6 +200,10 @@ const ChoiceBoard = () => {
   const [greeting, setGreeting] = useState("");
   const [greetingLoading, setGreetingLoading] = useState(false);
 
+  // Dynamic AI-generated items for categories
+  const [dynamicItems, setDynamicItems] = useState<ChoiceItem[]>([]);
+  const [dynamicLoading, setDynamicLoading] = useState(false);
+
   // Reward tracking
   const [selectionCount, setSelectionCount] = useState(0);
   const selectionsRef = useRef<string[]>([]);
@@ -221,6 +225,8 @@ const ChoiceBoard = () => {
     setActiveCategory(null);
     setGreeting("");
     setGreetingLoading(false);
+    setDynamicItems([]);
+    setDynamicLoading(false);
     setSelectionCount(0);
     selectionsRef.current = [];
     setRewardImage(null);
@@ -254,12 +260,59 @@ const ChoiceBoard = () => {
     }
   }, []);
 
+  /** Fetch AI-suggested items for a category when local images are missing */
+  const fetchDynamicItems = useCallback(async (category: Category) => {
+    // Check if any static item images actually exist by probing the first one
+    // If category has items with local paths, we still try to augment
+    setDynamicLoading(true);
+    setDynamicItems([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("makaton-predict", {
+        body: {
+          child_name: currentStudent,
+          category: category.label,
+          history_log: selectionsRef.current.length > 0 ? selectionsRef.current : ["general"],
+          is_first_session: selectionsRef.current.length === 0,
+        },
+      });
+      if (error) throw error;
+
+      const raw: any[] =
+        data?.predicted_signs ||
+        data?.predictions ||
+        data?.signs ||
+        (Array.isArray(data) ? data : []);
+
+      const items: ChoiceItem[] = raw.slice(0, 6).map((s: any, i: number) => {
+        const label = typeof s === "string" ? s : s?.sign_name || s?.label || s?.name || String(s);
+        const imageSource = typeof s === "object" ? (s?.image_url || s?.imageSource || s?.image || s?.imagePath) : undefined;
+        // Prefer AI-provided image, fall back to local symbol path
+        const imagePath = imageSource || `/symbols/${label.toLowerCase().replace(/\s+/g, " ")}.png`;
+        return {
+          id: `dynamic-${category.id}-${i}`,
+          label,
+          makatonId: 0,
+          imagePath,
+          colorClass: category.colorClass,
+        };
+      });
+
+      setDynamicItems(items);
+    } catch {
+      // On failure, keep the static items
+      setDynamicItems([]);
+    } finally {
+      setDynamicLoading(false);
+    }
+  }, [currentStudent]);
+
   const handleCategorySelect = useCallback(
     (category: Category) => {
       setActiveCategory(category);
       fetchGreeting(category);
+      fetchDynamicItems(category);
     },
-    [fetchGreeting]
+    [fetchGreeting, fetchDynamicItems]
   );
 
   const handleBack = useCallback(() => {
@@ -267,6 +320,8 @@ const ChoiceBoard = () => {
     setGreeting("");
     setGreetingLoading(false);
     setLastRationale(null);
+    setDynamicItems([]);
+    setDynamicLoading(false);
   }, []);
 
   const handleSubItemSelect = useCallback(
@@ -341,7 +396,10 @@ const ChoiceBoard = () => {
     [selectionCount]
   );
 
-  const items = activeCategory ? activeCategory.items : categories;
+  // Use dynamic AI items if available, otherwise fall back to static items
+  const items = activeCategory
+    ? (dynamicItems.length > 0 ? dynamicItems : activeCategory.items)
+    : categories;
 
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6">
@@ -430,7 +488,19 @@ const ChoiceBoard = () => {
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full animate-fade-in">
+      {/* Loading skeleton while dynamic items fetch */}
+      {activeCategory && dynamicLoading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full animate-fade-in">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`bg-card ${highContrast ? "border-[6px] border-black" : `border-4 border-muted`} rounded-2xl shadow-md w-full aspect-square animate-pulse`}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full animate-fade-in ${activeCategory && dynamicLoading ? "hidden" : ""}`}>
         {items.map((item) => (
           <ChoiceCard
             key={item.id}

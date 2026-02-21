@@ -42,19 +42,19 @@ const QuickChoices = ({ category, highContrast, onSelect }: QuickChoicesProps) =
         if (error) throw error;
 
         // Accept various response shapes
-        const signs: string[] =
+        const raw: any[] =
           data?.predicted_signs ||
           data?.predictions ||
           data?.signs ||
           (Array.isArray(data) ? data : []);
 
+        const signs: PredictedSign[] = raw.slice(0, 3).map((s: any) => {
+          const label = typeof s === "string" ? s : s?.sign_name || s?.label || s?.name || String(s);
+          return { label, imagePath: resolveImage(label) };
+        });
+
         if (!cancelled) {
-          setPredictions(
-            signs.slice(0, 3).map((s: string) => ({
-              label: typeof s === "string" ? s : String(s),
-              imagePath: resolveImage(typeof s === "string" ? s : String(s)),
-            }))
-          );
+          setPredictions(signs);
         }
       } catch {
         if (!cancelled) setPredictions([]);

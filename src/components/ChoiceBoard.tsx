@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw, Eye } from "lucide-react";
-import { categories } from "@/data/makaton";
+import { categories, githubSymbolUrl } from "@/data/makaton";
 import { Category, ChoiceItem, makatonAssetUrl } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
@@ -118,8 +118,15 @@ const ChoiceCard = ({
             alt={`${item.label} Makaton sign`}
             className="absolute inset-0 w-full h-full object-contain"
             onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-              e.currentTarget.parentElement
+              const img = e.currentTarget as HTMLImageElement;
+              // Try GitHub fallback if not already a remote URL
+              const ghFallback = githubSymbolUrl(item.label.toLowerCase().replace(/\s+/g, " "));
+              if (!img.src.includes("raw.githubusercontent.com") && !img.src.startsWith("http")) {
+                img.src = ghFallback;
+                return;
+              }
+              img.style.display = "none";
+              img.parentElement
                 ?.querySelector<HTMLDivElement>("[data-placeholder]")
                 ?.removeAttribute("hidden");
             }}
@@ -260,12 +267,50 @@ const ChoiceBoard = () => {
     }
   }, []);
 
-  /** Fetch AI-suggested items for a category when local images are missing */
+  /** Check if an image URL actually resolves (HEAD request or Image probe) */
+  const probeImage = useCallback((url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+      // Timeout after 3s
+      setTimeout(() => resolve(false), 3000);
+    });
+  }, []);
+
+  /** Fetch AI-suggested items for a category when local/GitHub images are missing */
   const fetchDynamicItems = useCallback(async (category: Category) => {
-    // Check if any static item images actually exist by probing the first one
-    // If category has items with local paths, we still try to augment
     setDynamicLoading(true);
     setDynamicItems([]);
+
+    // Step 1: Probe static items — check local then GitHub
+    const staticItems = category.items;
+    const probeResults = await Promise.all(
+      staticItems.map(async (item) => {
+        // Try local first
+        if (item.imagePath && await probeImage(item.imagePath)) {
+          return { ...item, resolved: true };
+        }
+        // Try GitHub
+        const ghUrl = githubSymbolUrl(item.label.toLowerCase().replace(/\s+/g, " "));
+        if (await probeImage(ghUrl)) {
+          return { ...item, imagePath: ghUrl, resolved: true };
+        }
+        return { ...item, resolved: false };
+      })
+    );
+
+    const resolvedCount = probeResults.filter((r) => r.resolved).length;
+
+    // Step 2: If most images resolved, use them (with GitHub URLs where needed)
+    if (resolvedCount >= staticItems.length / 2) {
+      setDynamicItems(probeResults.map(({ resolved, ...item }) => item));
+      setDynamicLoading(false);
+      return;
+    }
+
+    // Step 3: No/few images — call CodeWords AI for suggestions
     try {
       const { data, error } = await supabase.functions.invoke("makaton-predict", {
         body: {
@@ -285,9 +330,10 @@ const ChoiceBoard = () => {
 
       const items: ChoiceItem[] = raw.slice(0, 6).map((s: any, i: number) => {
         const label = typeof s === "string" ? s : s?.sign_name || s?.label || s?.name || String(s);
-        const imageSource = typeof s === "object" ? (s?.image_url || s?.imageSource || s?.image || s?.imagePath) : undefined;
-        // Prefer AI-provided image, fall back to local symbol path
-        const imagePath = imageSource || `/symbols/${label.toLowerCase().replace(/\s+/g, " ")}.png`;
+        const imageSource = typeof s === "object"
+          ? (s?.image_url || s?.imageSource || s?.image || s?.imagePath)
+          : undefined;
+        const imagePath = imageSource || githubSymbolUrl(label.toLowerCase().replace(/\s+/g, " "));
         return {
           id: `dynamic-${category.id}-${i}`,
           label,
@@ -297,14 +343,14 @@ const ChoiceBoard = () => {
         };
       });
 
-      setDynamicItems(items);
+      setDynamicItems(items.length > 0 ? items : staticItems);
     } catch {
-      // On failure, keep the static items
-      setDynamicItems([]);
+      // On failure, keep static items
+      setDynamicItems(staticItems);
     } finally {
       setDynamicLoading(false);
     }
-  }, [currentStudent]);
+  }, [currentStudent, probeImage]);
 
   const handleCategorySelect = useCallback(
     (category: Category) => {

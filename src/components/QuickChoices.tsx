@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
   const [loading, setLoading] = useState(false);
   const sendingRef = useRef<Set<string>>(new Set());
 
+  const isFirstSession = historyLog.length === 0;
+
   useEffect(() => {
     if (!isProfileSet) return;
 
@@ -41,12 +43,12 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
           body: {
             child_name: currentStudent,
             category: category || "",
-            history_log: historyLog.length > 0 ? historyLog : [category || "general"],
+            history_log: historyLog.length > 0 ? historyLog : ["general"],
+            is_first_session: isFirstSession,
           },
         });
         if (error) throw error;
 
-        // Accept various response shapes
         const raw: any[] =
           data?.predicted_signs ||
           data?.predictions ||
@@ -70,13 +72,12 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
 
     fetchPredictions();
     return () => { cancelled = true; };
-  }, [currentStudent, category, isProfileSet, historyLog.length]);
+  }, [currentStudent, category, isProfileSet, historyLog.length, isFirstSession]);
 
   const handleClick = async (sign: PredictedSign) => {
     if (sendingRef.current.has(sign.label)) return;
     sendingRef.current.add(sign.label);
 
-    // Count as valid step + notify TA
     onSelect(sign.label);
 
     supabase.functions
@@ -103,57 +104,88 @@ const QuickChoices = ({ category, highContrast, historyLog, onSelect }: QuickCho
   if (!isProfileSet) return null;
   if (!loading && predictions.length === 0) return null;
 
+  // First-session buttons are larger with a purple accent border + star badge
+  const buttonSize = isFirstSession
+    ? "w-24 h-24 sm:w-28 sm:h-28"
+    : "w-20 h-20 sm:w-24 sm:h-24";
+
+  const borderStyle = isFirstSession
+    ? highContrast
+      ? "border-[5px] border-black bg-card"
+      : "border-[4px] border-purple-400 bg-card"
+    : highContrast
+      ? "border-[5px] border-black bg-card"
+      : "border-3 border-primary/40 bg-card";
+
   return (
     <div className="w-full max-w-3xl mx-auto px-4 animate-fade-in">
       <p className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
-        <Sparkles className="w-4 h-4 text-primary" />
-        Suggested for {currentStudent}
+        {isFirstSession ? (
+          <>
+            <Star className="w-4 h-4 text-purple-500 fill-purple-500" />
+            Essentials for {currentStudent}
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4 text-primary" />
+            Suggested for {currentStudent}
+          </>
+        )}
       </p>
 
       <div className="flex gap-3 justify-start">
         {loading ? (
           <div className="flex items-center gap-2 py-4">
             <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">Predicting…</span>
+            <span className="text-sm text-muted-foreground">
+              {isFirstSession ? "Loading essentials…" : "Predicting…"}
+            </span>
           </div>
         ) : (
           predictions.map((sign) => (
-            <button
-              key={sign.label}
-              onClick={() => handleClick(sign)}
-              className={`
-                w-20 h-20 sm:w-24 sm:h-24 rounded-full
-                ${highContrast ? "border-[5px] border-black bg-card" : "border-3 border-primary/40 bg-card"}
-                shadow-md overflow-hidden
-                flex items-center justify-center
-                transition-all duration-150
-                hover:scale-110 active:scale-95
-                focus:outline-none focus:ring-4 focus:ring-ring/50
-                cursor-pointer select-none
-              `}
-              aria-label={`Quick choice: ${sign.label}`}
-            >
-              {sign.imagePath ? (
-                <img
-                  src={sign.imagePath}
-                  alt={sign.label}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                    e.currentTarget.parentElement
-                      ?.querySelector<HTMLDivElement>("[data-placeholder]")
-                      ?.removeAttribute("hidden");
-                  }}
-                />
-              ) : null}
-              <div
-                data-placeholder
-                hidden={!!sign.imagePath}
-                className={sign.imagePath ? "hidden" : "w-3/4 h-3/4"}
+            <div key={sign.label} className="relative">
+              <button
+                onClick={() => handleClick(sign)}
+                className={`
+                  ${buttonSize} rounded-full
+                  ${borderStyle}
+                  shadow-md overflow-hidden
+                  flex items-center justify-center
+                  transition-all duration-150
+                  hover:scale-110 active:scale-95
+                  focus:outline-none focus:ring-4 focus:ring-ring/50
+                  cursor-pointer select-none
+                `}
+                aria-label={`Quick choice: ${sign.label}`}
               >
-                <MakatonPlaceholder label={sign.label} />
-              </div>
-            </button>
+                {sign.imagePath ? (
+                  <img
+                    src={sign.imagePath}
+                    alt={sign.label}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      e.currentTarget.parentElement
+                        ?.querySelector<HTMLDivElement>("[data-placeholder]")
+                        ?.removeAttribute("hidden");
+                    }}
+                  />
+                ) : null}
+                <div
+                  data-placeholder
+                  hidden={!!sign.imagePath}
+                  className={sign.imagePath ? "hidden" : "w-3/4 h-3/4"}
+                >
+                  <MakatonPlaceholder label={sign.label} />
+                </div>
+              </button>
+              {/* Star badge for first-session essentials */}
+              {isFirstSession && (
+                <div className="absolute -top-1 -right-1 bg-purple-500 rounded-full p-1 shadow-sm">
+                  <Star className="w-3 h-3 text-white fill-white" />
+                </div>
+              )}
+            </div>
           ))
         )}
       </div>

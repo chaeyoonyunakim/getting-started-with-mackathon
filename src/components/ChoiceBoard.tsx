@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw, Eye } from "lucide-react";
+import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw, Eye, CloudUpload } from "lucide-react";
 import { categories, githubSymbolUrl } from "@/data/makaton";
 import { Category, ChoiceItem, makatonAssetUrl } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,11 @@ const ChoiceCard = ({
   
   const [success, setSuccess] = useState(false);
   const sendingRef = useRef(false);
+
+  // Save-to-library state
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const isRemoteImage = !!(item.imagePath && item.imagePath.startsWith("http"));
 
   const handleClick = async () => {
     if (sendingRef.current || disabled) return;
@@ -156,6 +161,49 @@ const ChoiceCard = ({
             </TooltipProvider>
           )}
         </div>
+      )}
+
+      {/* Save to Library button — only on remote/AI-generated cards */}
+      {isSubItem && isRemoteImage && (
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            if (saving || saved) return;
+            setSaving(true);
+            try {
+              const { error } = await supabase.functions.invoke("makaton-save-symbol", {
+                body: { image_url: item.imagePath, sign_name: item.label },
+              });
+              if (error) throw error;
+              setSaved(true);
+              toast.success("Saved to library!", { description: `${item.label} symbol committed.` });
+            } catch {
+              toast.error("Save failed", { description: "Could not commit the symbol." });
+            } finally {
+              setSaving(false);
+            }
+          }}
+          className={`
+            absolute top-2 left-2 z-10
+            rounded-full p-1.5 shadow-md
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-ring/50
+            ${saved
+              ? "bg-green-500 text-white cursor-default"
+              : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground backdrop-blur-sm"
+            }
+          `}
+          aria-label={saved ? "Saved to library" : "Save to library"}
+          disabled={saving || saved}
+        >
+          {saving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <CloudUpload className="w-4 h-4" />
+          )}
+        </button>
       )}
     </div>
   );

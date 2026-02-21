@@ -13,17 +13,6 @@ An intelligent, accessible communication board designed for Special Educational 
 - **High-Contrast Mode:** One-touch toggle for a yellow/black high-visibility theme, adhering to UK SEND visual standards.
 - **TA Insights via Slack:** Instant notifications to the teacher with "Reasoning" threads powered by Gemini to explain the child's communication patterns.
 
-## 🛠️ The Tech Stack
-
-| Component        | Technology                    |
-|-----------------|-------------------------------|
-| Frontend        | React / Vite (via Lovable)    |
-| Backend / API   | CodeWords (Agemo)             |
-| Predictive AI   | Gemini 1.5 Flash (Low Latency)|
-| Image AI        | DeepMind Nano Banana Pro      |
-| Real-time Alerts| Slack API (Block Kit)         |
-| Storage         | GitHub (for official Makaton symbols) |
-
 ## 📐 How it Works (Architecture)
 
 1. **Selection:** A child makes a choice on the tablet.
@@ -39,9 +28,40 @@ Official Makaton UK Playbook symbols are stored and referenced from:
 
 ---
 
-## Project info
+## Technical Documentation
 
-**Lovable project:** https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b
+### APIs & Frameworks Used
+
+| Layer | Technology | Role |
+|-------|------------|------|
+| **Frontend** | React + Vite | Deployed on Lovable |
+| **Logic Engine** | CodeWords (Agemo) | Orchestration layer |
+| **LLM** | Gemini 1.5 Flash | Sub-second behavioral prediction |
+| **Vision** | Nano Banana Pro | Zero-shot Makaton sign generation |
+| **Integrations** | Slack Webhooks | TA Alerts |
+| **Integrations** | GitHub REST API | Automated commits |
+
+*Frontend also uses TypeScript, shadcn-ui, and Tailwind CSS.*
+
+### Setup & Installation
+
+```sh
+# 1. Clone the repo
+git clone https://github.com/chaeyoonyunakim/getting-started-with-mackathon.git
+cd getting-started-with-mackathon
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables in the CodeWords backend
+#    - SLACK_WEBHOOK  (for TA alerts)
+#    - GITHUB_TOKEN   (for automated commits)
+
+# 4. Run locally
+npm run dev
+```
+
+---
 
 ## How can I edit this code?
 
@@ -53,14 +73,7 @@ Simply visit the [Lovable Project](https://lovable.dev/projects/8a191690-59f8-40
 
 **Use your preferred IDE**
 
-Clone this repo and push changes. Pushed changes will also be reflected in Lovable. The only requirement is having Node.js & npm installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone https://github.com/chaeyoonyunakim/getting-started-with-mackathon.git
-cd getting-started-with-mackathon
-npm i
-npm run dev
-```
+See **Setup & Installation** above. Ensure Node.js & npm are installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating). Pushed changes will be reflected in Lovable.
 
 **Edit a file directly in GitHub**
 
@@ -70,19 +83,9 @@ Navigate to the desired file(s), click the "Edit" button (pencil icon), make you
 
 Navigate to the main page of the repository → Code → Codespaces → New codespace. Edit files and commit/push when done.
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
 ## How can I deploy this project?
 
-The app is live at [makaton.lovable.app](https://makaton.lovable.app). To redeploy or update, open your [Lovable project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and click Share → Publish.
+The app is live at [makaton.lovable.app](https://makaton.lovable.app). To redeploy, open the [Lovable project](https://lovable.dev/projects/8a191690-59f8-407c-bf17-b00e127aff3b) and click Share → Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 

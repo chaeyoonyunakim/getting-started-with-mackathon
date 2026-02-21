@@ -314,23 +314,24 @@ const ChoiceBoard = () => {
   const items = activeCategory ? activeCategory.items : categories;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6 relative">
-      {/* Start Again button — top-right */}
-      <button
-        onClick={() => setResetConfirmOpen(true)}
-        className="
-          absolute top-6 right-4 z-20
-          flex items-center gap-2
-          bg-destructive text-destructive-foreground
-          rounded-xl px-4 py-3 text-lg font-bold
-          shadow-lg transition-transform hover:scale-105 active:scale-95
-          focus:outline-none focus:ring-4 focus:ring-ring/50
-        "
-        aria-label="Start again"
-      >
-        <RotateCcw className="w-6 h-6" />
-        <span className="hidden sm:inline">Start Again</span>
-      </button>
+    <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6">
+      {/* Start Again button — top row, right-aligned */}
+      <div className="w-full flex justify-end">
+        <button
+          onClick={() => setResetConfirmOpen(true)}
+          className="
+            flex items-center gap-2
+            bg-destructive text-destructive-foreground
+            rounded-xl px-4 py-3 text-lg font-bold
+            shadow-lg transition-transform hover:scale-105 active:scale-95
+            focus:outline-none focus:ring-4 focus:ring-ring/50
+          "
+          aria-label="Start again"
+        >
+          <RotateCcw className="w-6 h-6" />
+          <span className="hidden sm:inline">Start Again</span>
+        </button>
+      </div>
       {activeCategory && (
         <button
           onClick={handleBack}

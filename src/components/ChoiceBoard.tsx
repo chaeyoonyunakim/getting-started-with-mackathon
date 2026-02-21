@@ -7,6 +7,7 @@ import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
 import { useHighContrast } from "@/hooks/useHighContrast";
 import MakatonPlaceholder from "@/components/MakatonPlaceholder";
+import QuickChoices from "@/components/QuickChoices";
 import {
   Dialog,
   DialogContent,
@@ -356,6 +357,58 @@ const ChoiceBoard = () => {
           <span className="hidden sm:inline">Start Again</span>
         </button>
       </div>
+      {/* Quick Choices — predictive suggestions */}
+      <QuickChoices
+        category={activeCategory?.label}
+        highContrast={highContrast}
+        onSelect={(label) => {
+          const fakeItem: ChoiceItem = {
+            id: `quick-${label}`,
+            label,
+            makatonId: 0,
+            colorClass: "",
+          };
+          // Count toward 3-step reward (notification handled inside QuickChoices)
+          const newCount = selectionCount + 1;
+          setSelectionCount(newCount);
+          selectionsRef.current = [...selectionsRef.current, label];
+
+          if (newCount % 3 === 0) {
+            setRewardOpen(true);
+            setRewardImage(null);
+            supabase.functions.invoke("makaton-reward", {
+              body: { makatonId: 0, assetUrl: "", label, color: "Electric Blue" },
+            }).then(({ data, error }) => {
+              if (error) throw error;
+              const imgUrl = data?.image || null;
+              setRewardImage(imgUrl);
+              if (imgUrl) {
+                try {
+                  const ctx = new AudioContext();
+                  const playNote = (freq: number, start: number, dur: number) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = "triangle";
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime + start);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + dur);
+                    osc.connect(gain).connect(ctx.destination);
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + dur);
+                  };
+                  playNote(523, 0, 0.2);
+                  playNote(659, 0.15, 0.2);
+                  playNote(784, 0.3, 0.4);
+                } catch {}
+              }
+            }).catch(() => {
+              toast.error("Reward couldn't load", { description: "But great job! ⭐" });
+              setRewardOpen(false);
+            });
+          }
+        }}
+      />
+
       {activeCategory && (
         <button
           onClick={handleBack}

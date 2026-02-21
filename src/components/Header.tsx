@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,15 +9,18 @@ const navLinks = [
   { label: "Contact", href: "#contact" },
 ];
 
-const Header = () => {
+const Header = ({ profileChip }: { profileChip?: ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <a href="/" className="text-xl font-bold tracking-tight text-foreground">
-          Brand
-        </a>
+        <div className="flex items-center gap-3">
+          <a href="/" className="text-xl font-bold tracking-tight text-foreground">
+            Brand
+          </a>
+          {profileChip}
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">

@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw } from "lucide-
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
+import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -69,6 +70,7 @@ const ChoiceCard = ({
   showRationale?: boolean;
   rationale?: string;
 }) => {
+  const { currentStudent } = useStudent();
   const [popping, setPopping] = useState(false);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -91,7 +93,7 @@ const ChoiceCard = ({
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("makaton-notifier", {
-        body: { child_name: "Sam", selection: item.label },
+        body: { child_name: currentStudent, selection: item.label },
       });
 
       if (error) throw error;
@@ -205,6 +207,7 @@ const SpeechBubble = ({
 };
 
 const ChoiceBoard = () => {
+  const { currentStudent } = useStudent();
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [greeting, setGreeting] = useState("");
   const [greetingLoading, setGreetingLoading] = useState(false);

@@ -89,6 +89,14 @@
   }
 }
 
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 60 100% 50%;
+  --card-foreground: 0 0% 0%;
+  --border: 0 0% 0%;
+}
+
 @layer base {
   * {
     @apply border-border;

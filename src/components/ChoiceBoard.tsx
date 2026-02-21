@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef } from "react";
-import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw } from "lucide-react";
+import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw, Eye } from "lucide-react";
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem, makatonAssetUrl } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
+import { useHighContrast } from "@/hooks/useHighContrast";
 import MakatonPlaceholder from "@/components/MakatonPlaceholder";
 import {
   Dialog,
@@ -33,12 +34,14 @@ const ChoiceCard = ({
   isSubItem,
   showRationale,
   rationale,
+  highContrast,
 }: {
   item: ChoiceItem;
   onClick?: () => void;
   isSubItem?: boolean;
   showRationale?: boolean;
   rationale?: string;
+  highContrast?: boolean;
 }) => {
   const { currentStudent } = useStudent();
   const [popping, setPopping] = useState(false);
@@ -93,7 +96,7 @@ const ChoiceCard = ({
         onClick={handleClick}
         disabled={false}
         className={`
-          bg-card border-4 ${item.colorClass.replace("bg-", "border-")}
+          bg-card ${highContrast ? "border-[6px] border-black" : `border-4 ${item.colorClass.replace("bg-", "border-")}`}
           rounded-2xl shadow-md w-full aspect-square
           flex items-center justify-center p-0
           transition-all duration-150
@@ -189,6 +192,7 @@ const SpeechBubble = ({
 
 const ChoiceBoard = () => {
   const { currentStudent } = useStudent();
+  const { highContrast, toggle: toggleContrast } = useHighContrast();
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [greeting, setGreeting] = useState("");
   const [greetingLoading, setGreetingLoading] = useState(false);
@@ -321,7 +325,22 @@ const ChoiceBoard = () => {
   return (
     <div className="flex flex-col items-center w-full max-w-3xl mx-auto px-4 py-6 gap-6">
       {/* Start Again button — top row, right-aligned */}
-      <div className="w-full flex justify-end">
+      <div className="w-full flex justify-end gap-3">
+        <button
+          onClick={toggleContrast}
+          className={`
+            flex items-center gap-2
+            rounded-xl px-4 py-3 text-lg font-bold
+            shadow-lg transition-transform hover:scale-105 active:scale-95
+            focus:outline-none focus:ring-4 focus:ring-ring/50
+            ${highContrast ? "bg-foreground text-background" : "bg-secondary text-secondary-foreground"}
+          `}
+          aria-label="Toggle high contrast mode"
+          aria-pressed={highContrast}
+        >
+          <Eye className="w-6 h-6" />
+          <span className="hidden sm:inline">High Contrast</span>
+        </button>
         <button
           onClick={() => setResetConfirmOpen(true)}
           className="
@@ -372,6 +391,7 @@ const ChoiceBoard = () => {
             isSubItem={!!activeCategory}
             showRationale={!!lastRationale}
             rationale={lastRationale || undefined}
+            highContrast={highContrast}
             onClick={
               !activeCategory
                 ? () => handleCategorySelect(item as Category)

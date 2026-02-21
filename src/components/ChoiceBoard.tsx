@@ -42,12 +42,12 @@ const ChoiceCard = ({
 }) => {
   const { currentStudent } = useStudent();
   const [popping, setPopping] = useState(false);
-  const [sending, setSending] = useState(false);
+  
   const [success, setSuccess] = useState(false);
   const sendingRef = useRef(false);
 
   const handleClick = async () => {
-    if (sendingRef.current || sending) return;
+    if (sendingRef.current) return;
 
     if (!isSubItem) {
       setPopping(true);
@@ -58,45 +58,40 @@ const ChoiceCard = ({
       return;
     }
 
-    // Sub-item: send to CodeWords
+    // Sub-item: optimistic UI — show success immediately
     sendingRef.current = true;
-    setSending(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("makaton-notifier", {
-        body: { child_name: currentStudent, selection: item.label },
-      });
+    setSuccess(true);
+    onClick?.();
 
+    // Fire-and-forget: send to CodeWords in background
+    supabase.functions.invoke("makaton-notifier", {
+      body: { child_name: currentStudent, selection: item.label },
+    }).then(({ error }) => {
       if (error) {
-        // Check for rate limiting (429)
         const errMsg = typeof error === "object" && "message" in error ? (error as any).message : String(error);
         if (errMsg.includes("429") || errMsg.toLowerCase().includes("rate limit") || errMsg.toLowerCase().includes("too many")) {
           toast.error("Slow down! 🐢", {
             description: "Too many requests — please wait a moment and try again.",
             duration: 5000,
           });
-          return;
+        } else {
+          toast.error("Notification may not have sent", { description: "The TA might not have been notified." });
         }
-        throw error;
       }
-
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 4000);
-      onClick?.();
-    } catch (err) {
-      toast.error("Try again", {
-        description: "Failed to send selection.",
-      });
-    } finally {
+    }).catch(() => {
+      toast.error("Notification may not have sent", { description: "The TA might not have been notified." });
+    }).finally(() => {
       sendingRef.current = false;
-      setSending(false);
-    }
+    });
+
+    setTimeout(() => setSuccess(false), 4000);
   };
 
   return (
     <div className="relative">
       <button
         onClick={handleClick}
-        disabled={sending}
+        disabled={false}
         className={`
           bg-card border-4 ${item.colorClass.replace("bg-", "border-")}
           rounded-2xl shadow-md w-full aspect-square
@@ -111,11 +106,6 @@ const ChoiceCard = ({
         `}
         aria-label={item.label}
       >
-        {sending && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
-            <Loader2 className="w-10 h-10 text-white animate-spin" />
-          </div>
-        )}
         {/* Makaton symbol area — image centered, label underneath */}
         <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
           {item.imagePath ? (
@@ -214,7 +204,7 @@ const ChoiceBoard = () => {
   const [selectionCount, setSelectionCount] = useState(0);
   const selectionsRef = useRef<string[]>([]);
   const [rewardImage, setRewardImage] = useState<string | null>(null);
-  const [rewardLoading, setRewardLoading] = useState(false);
+  
   const [rewardOpen, setRewardOpen] = useState(false);
 
   // Rationale from greeting response
@@ -230,7 +220,7 @@ const ChoiceBoard = () => {
     setSelectionCount(0);
     selectionsRef.current = [];
     setRewardImage(null);
-    setRewardLoading(false);
+    
     setRewardOpen(false);
     setLastRationale(null);
     setResetConfirmOpen(false);
@@ -282,11 +272,10 @@ const ChoiceBoard = () => {
       const newCount = selectionCount + 1;
       setSelectionCount(newCount);
 
-      // Every 3 selections → trigger golden reward
+      // Every 3 selections → trigger golden reward instantly
       if (newCount % 3 === 0) {
-        setRewardLoading(true);
-        setRewardImage(null);
         setRewardOpen(true);
+        setRewardImage(null);
 
         try {
           const { data, error } = await supabase.functions.invoke("makaton-reward", {
@@ -328,8 +317,6 @@ const ChoiceBoard = () => {
             description: "But great job picking 3 things! ⭐",
           });
           setRewardOpen(false);
-        } finally {
-          setRewardLoading(false);
         }
       }
     },
@@ -404,12 +391,12 @@ const ChoiceBoard = () => {
       {/* Victory Modal — full-screen celebratory overlay */}
       {rewardOpen && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[hsl(45,100%,85%)] animate-fade-in">
-          {rewardLoading ? (
+          {!rewardImage ? (
             <div className="flex flex-col items-center gap-4">
-              <Loader2 className="w-20 h-20 text-primary animate-spin" />
-              <p className="text-2xl font-bold text-foreground">Creating your Golden Sign…</p>
+              <Loader2 className="w-16 h-16 text-primary animate-spin" />
+              <p className="text-xl font-bold text-foreground">Almost there…</p>
             </div>
-          ) : rewardImage ? (
+          ) : (
             <>
               <div className="flex items-center gap-2 mb-6 animate-fade-in">
                 <Sparkles className="w-10 h-10 text-accent" />
@@ -440,7 +427,7 @@ const ChoiceBoard = () => {
                 ⬅ Back to Board
               </button>
             </>
-          ) : null}
+          )}
         </div>
       )}
       {/* Reset confirmation modal */}

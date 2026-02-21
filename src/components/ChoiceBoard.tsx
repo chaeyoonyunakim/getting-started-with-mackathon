@@ -302,6 +302,27 @@ const ChoiceBoard = () => {
 
           const imgUrl = data?.image || null;
           setRewardImage(imgUrl);
+
+          // Play celebratory chime
+          if (imgUrl) {
+            try {
+              const ctx = new AudioContext();
+              const playNote = (freq: number, start: number, dur: number) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = "triangle";
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.3, ctx.currentTime + start);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + start + dur);
+                osc.connect(gain).connect(ctx.destination);
+                osc.start(ctx.currentTime + start);
+                osc.stop(ctx.currentTime + start + dur);
+              };
+              playNote(523, 0, 0.2);
+              playNote(659, 0.15, 0.2);
+              playNote(784, 0.3, 0.4);
+            } catch {}
+          }
         } catch {
           toast.error("Reward couldn't load", {
             description: "But great job picking 3 things! ⭐",
@@ -380,32 +401,48 @@ const ChoiceBoard = () => {
         ))}
       </div>
 
-      {/* Reward modal */}
-      <Dialog open={rewardOpen} onOpenChange={setRewardOpen}>
-        <DialogContent className="sm:max-w-md flex flex-col items-center gap-6 py-8">
-          <DialogTitle className="text-2xl sm:text-3xl font-bold text-center flex items-center gap-2">
-            <Sparkles className="w-7 h-7 text-accent" />
-            Amazing Job!
-            <Sparkles className="w-7 h-7 text-accent" />
-          </DialogTitle>
-          <DialogDescription className="text-center text-lg text-muted-foreground">
-            You picked 3 things! Here's your special reward!
-          </DialogDescription>
-
+      {/* Victory Modal — full-screen celebratory overlay */}
+      {rewardOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[hsl(45,100%,85%)] animate-fade-in">
           {rewardLoading ? (
-            <div className="flex flex-col items-center gap-3 py-8">
-              <Loader2 className="w-16 h-16 text-primary animate-spin" />
-              <p className="text-muted-foreground text-lg">Creating your reward…</p>
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-20 h-20 text-primary animate-spin" />
+              <p className="text-2xl font-bold text-foreground">Creating your Golden Sign…</p>
             </div>
           ) : rewardImage ? (
-            <img
-              src={rewardImage}
-              alt="Your special reward illustration"
-              className="w-full max-w-sm rounded-2xl shadow-lg border border-border"
-            />
+            <>
+              <div className="flex items-center gap-2 mb-6 animate-fade-in">
+                <Sparkles className="w-10 h-10 text-accent" />
+                <h2 className="text-4xl sm:text-5xl font-extrabold text-foreground">Amazing Job!</h2>
+                <Sparkles className="w-10 h-10 text-accent" />
+              </div>
+              <p className="text-xl text-muted-foreground mb-8">You picked 3 things! Here's your Golden Sign!</p>
+              <img
+                src={rewardImage}
+                alt="Your Golden Makaton Sign"
+                className="w-64 h-64 sm:w-80 sm:h-80 object-contain rounded-3xl shadow-2xl border-4 border-accent animate-victory-bounce"
+              />
+              <button
+                onClick={() => {
+                  setRewardOpen(false);
+                  setRewardImage(null);
+                  setSelectionCount(0);
+                  selectionsRef.current = [];
+                }}
+                className="
+                  mt-10 bg-primary text-primary-foreground
+                  rounded-2xl px-10 py-5 text-2xl font-extrabold
+                  shadow-xl transition-transform hover:scale-105 active:scale-95
+                  focus:outline-none focus:ring-4 focus:ring-ring/50
+                  animate-fade-in
+                "
+              >
+                ⬅ Back to Board
+              </button>
+            </>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
       {/* Reset confirmation modal */}
       <Dialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
         <DialogContent className="sm:max-w-sm flex flex-col items-center gap-6 py-8">

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ArrowLeft, Loader2, X, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, X, Sparkles, Info, Check } from "lucide-react";
 import { categories } from "@/data/makaton";
 import { Category, ChoiceItem } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 /** Convert a React SVG icon element to a base64 PNG data URL */
 async function iconToBase64(iconElement: React.ReactNode): Promise<string> {
@@ -42,14 +48,26 @@ async function iconToBase64(iconElement: React.ReactNode): Promise<string> {
   });
 }
 
+/* "TA Notified" badge shown after a sub-item is sent */
+const TANotifiedBadge = () => (
+  <div className="flex items-center gap-1.5 bg-accent/20 text-accent-foreground rounded-full px-3 py-1 text-sm font-medium animate-fade-in">
+    <Check className="w-4 h-4 text-primary" />
+    <span>TA Notified</span>
+  </div>
+);
+
 const ChoiceCard = ({
   item,
   onClick,
   isSubItem,
+  showRationale,
+  rationale,
 }: {
   item: ChoiceItem;
   onClick?: () => void;
   isSubItem?: boolean;
+  showRationale?: boolean;
+  rationale?: string;
 }) => {
   const [popping, setPopping] = useState(false);
   const [sending, setSending] = useState(false);
@@ -71,13 +89,13 @@ const ChoiceCard = ({
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("makaton-notifier", {
-        body: { selection: item.label },
+        body: { child_name: "Sam", selection: item.label },
       });
 
       if (error) throw error;
 
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
+      setTimeout(() => setSuccess(false), 4000);
       onClick?.();
     } catch (err) {
       toast.error("Try again", {
@@ -89,35 +107,58 @@ const ChoiceCard = ({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      disabled={sending}
-      className={`
-        ${item.colorClass} 
-        rounded-2xl shadow-lg
-        flex flex-col items-center justify-center gap-3 p-6
-        transition-all duration-150 
-        hover:scale-[1.03] active:scale-95
-        focus:outline-none focus:ring-4 focus:ring-ring/50
-        ${popping ? "animate-pop" : ""}
-        ${success ? "ring-4 ring-green-400" : ""}
-        cursor-pointer select-none
-        relative
-      `}
-      aria-label={item.label}
-    >
-      {sending && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
-          <Loader2 className="w-10 h-10 text-white animate-spin" />
+    <div className="relative">
+      <button
+        onClick={handleClick}
+        disabled={sending}
+        className={`
+          ${item.colorClass} 
+          rounded-2xl shadow-lg w-full
+          flex flex-col items-center justify-center gap-3 p-6
+          transition-all duration-150 
+          hover:scale-[1.03] active:scale-95
+          focus:outline-none focus:ring-4 focus:ring-ring/50
+          ${popping ? "animate-pop" : ""}
+          ${success ? "ring-4 ring-green-400" : ""}
+          cursor-pointer select-none
+          relative
+        `}
+        aria-label={item.label}
+      >
+        {sending && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-2xl">
+            <Loader2 className="w-10 h-10 text-white animate-spin" />
+          </div>
+        )}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-white drop-shadow-md">
+          {item.icon}
+        </div>
+        <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-sm tracking-wide">
+          {item.label}
+        </span>
+      </button>
+
+      {/* TA Notified badge + rationale tooltip */}
+      {success && isSubItem && (
+        <div className="absolute -top-2 -right-2 flex items-center gap-1 z-10">
+          <TANotifiedBadge />
+          {showRationale && rationale && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="bg-muted rounded-full p-1 shadow-sm hover:bg-muted/80 transition-colors" aria-label="Why was the TA notified?">
+                    <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs text-sm">
+                  {rationale}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       )}
-      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-white drop-shadow-md">
-        {item.icon}
-      </div>
-      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white drop-shadow-sm tracking-wide">
-        {item.label}
-      </span>
-    </button>
+    </div>
   );
 };
 
@@ -172,6 +213,9 @@ const ChoiceBoard = () => {
   const [rewardLoading, setRewardLoading] = useState(false);
   const [rewardOpen, setRewardOpen] = useState(false);
 
+  // Rationale from greeting response
+  const [lastRationale, setLastRationale] = useState<string | null>(null);
+
   const fetchGreeting = useCallback(async (category: Category) => {
     setGreetingLoading(true);
     setGreeting("");
@@ -180,12 +224,15 @@ const ChoiceBoard = () => {
         body: { category: category.label },
       });
       if (error) throw error;
-      // Try to extract greeting text from response
       const text =
         typeof data === "string"
           ? data
           : data?.greeting || data?.message || data?.text || data?.result || JSON.stringify(data);
       setGreeting(text);
+      // Store rationale if present
+      if (data?.rationale || data?.reason) {
+        setLastRationale(data.rationale || data.reason);
+      }
     } catch {
       setGreeting("Great choice! Let's explore together! 🌟");
     } finally {
@@ -205,6 +252,7 @@ const ChoiceBoard = () => {
     setActiveCategory(null);
     setGreeting("");
     setGreetingLoading(false);
+    setLastRationale(null);
   }, []);
 
   const handleSubItemSelect = useCallback(
@@ -221,14 +269,10 @@ const ChoiceBoard = () => {
         setRewardOpen(true);
 
         try {
-          // Capture the icon of the last selected item as a base64 PNG
           const base64 = await iconToBase64(item.icon);
 
-          const vibrantColors = ["Gold", "Electric Blue", "Hot Pink", "Lime Green", "Vivid Orange"];
-          const color = vibrantColors[Math.floor(Math.random() * vibrantColors.length)];
-
           const { data, error } = await supabase.functions.invoke("makaton-reward", {
-            body: { image: base64, color },
+            body: { image: base64, color: "Electric Blue" },
           });
 
           if (error) throw error;
@@ -285,6 +329,8 @@ const ChoiceBoard = () => {
             key={item.id}
             item={item}
             isSubItem={!!activeCategory}
+            showRationale={!!lastRationale}
+            rationale={lastRationale || undefined}
             onClick={
               !activeCategory
                 ? () => handleCategorySelect(item as Category)

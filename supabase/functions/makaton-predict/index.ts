@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { child_name, category } = await req.json();
+    const { child_name, category, history_log } = await req.json();
 
     const res = await fetch(
       "https://runtime.codewords.ai/run/makaton_predictive_behavior_256b9d19/",
@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           child_name: child_name || "Sam",
-          category: category || "",
+          category: category || "general",
+          history_log: Array.isArray(history_log) && history_log.length > 0
+            ? history_log
+            : [category || "general"],
         }),
       }
     );

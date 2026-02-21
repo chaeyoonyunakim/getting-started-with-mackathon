@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { ArrowLeft, Loader2, X, Sparkles, Info, Check, RotateCcw } from "lucide-react";
 import { categories } from "@/data/makaton";
-import { Category, ChoiceItem } from "@/types/choiceBoard";
+import { Category, ChoiceItem, makatonAssetUrl } from "@/types/choiceBoard";
 import { supabase } from "@/integrations/supabase/client";
 import { useStudent } from "@/contexts/StudentContext";
 import { toast } from "sonner";
@@ -18,40 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-/** Convert a card's image to a base64 PNG for the reward endpoint */
-async function itemToBase64(item: ChoiceItem): Promise<string> {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 256;
-  const ctx = canvas.getContext("2d")!;
-
-  if (item.imagePath) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, 256, 256);
-        resolve(canvas.toDataURL("image/png"));
-      };
-      img.onerror = reject;
-      img.src = item.imagePath!;
-    });
-  }
-
-  // Placeholder: white bg, bold letter
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, 256, 256);
-  ctx.strokeStyle = "#1a1a2e";
-  ctx.lineWidth = 6;
-  ctx.strokeRect(12, 12, 232, 232);
-  ctx.fillStyle = "#1a1a2e";
-  ctx.font = "bold 140px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(item.label.charAt(0).toUpperCase(), 128, 128);
-  return canvas.toDataURL("image/png");
-}
 
 /* "TA Notified" badge shown after a sub-item is sent */
 const TANotifiedBadge = () => (
@@ -157,10 +123,18 @@ const ChoiceCard = ({
               src={item.imagePath}
               alt={`${item.label} Makaton sign`}
               className="w-full h-full object-contain rounded-xl"
+              onError={(e) => {
+                // Asset bank may require auth — hide broken image, show placeholder
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+                e.currentTarget.parentElement
+                  ?.querySelector<HTMLDivElement>("[data-placeholder]")
+                  ?.removeAttribute("hidden");
+              }}
             />
-          ) : (
+          ) : null}
+          <div data-placeholder hidden={!!item.imagePath ? true : undefined} className={item.imagePath ? "" : "w-full h-full"}>
             <MakatonPlaceholder label={item.label} />
-          )}
+          </div>
         </div>
         <span className="text-lg sm:text-xl md:text-2xl font-extrabold text-foreground tracking-wide">
           {item.label}
@@ -315,10 +289,13 @@ const ChoiceBoard = () => {
         setRewardOpen(true);
 
         try {
-          const base64 = await itemToBase64(item);
-
           const { data, error } = await supabase.functions.invoke("makaton-reward", {
-            body: { image: base64, color: "Electric Blue" },
+            body: {
+              makatonId: item.makatonId,
+              assetUrl: makatonAssetUrl(item.makatonId),
+              label: item.label,
+              color: "Electric Blue",
+            },
           });
 
           if (error) throw error;

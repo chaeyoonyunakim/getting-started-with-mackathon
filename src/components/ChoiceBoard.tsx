@@ -36,6 +36,7 @@ const ChoiceCard = ({
   showRationale,
   rationale,
   highContrast,
+  disabled,
 }: {
   item: ChoiceItem;
   onClick?: () => void;
@@ -43,6 +44,7 @@ const ChoiceCard = ({
   showRationale?: boolean;
   rationale?: string;
   highContrast?: boolean;
+  disabled?: boolean;
 }) => {
   const { currentStudent } = useStudent();
   const [popping, setPopping] = useState(false);
@@ -51,7 +53,7 @@ const ChoiceCard = ({
   const sendingRef = useRef(false);
 
   const handleClick = async () => {
-    if (sendingRef.current) return;
+    if (sendingRef.current || disabled) return;
 
     if (!isSubItem) {
       setPopping(true);
@@ -95,7 +97,7 @@ const ChoiceCard = ({
     <div className="relative">
       <button
         onClick={handleClick}
-        disabled={false}
+        disabled={disabled}
         className={`
           bg-card ${highContrast ? "border-[6px] border-black" : `border-4 ${item.colorClass.replace("bg-", "border-")}`}
           rounded-2xl shadow-md w-full aspect-square
@@ -205,6 +207,10 @@ const ChoiceBoard = () => {
   
   const [rewardOpen, setRewardOpen] = useState(false);
 
+  // Board-level lock: prevents any card click while a notification is in-flight
+  const boardLockedRef = useRef(false);
+  const [boardLocked, setBoardLocked] = useState(false);
+
   // Rationale from greeting response
   const [lastRationale, setLastRationale] = useState<string | null>(null);
 
@@ -265,6 +271,15 @@ const ChoiceBoard = () => {
 
   const handleSubItemSelect = useCallback(
     async (item: ChoiceItem) => {
+      if (boardLockedRef.current) return;
+      boardLockedRef.current = true;
+      setBoardLocked(true);
+
+      // Auto-unlock after 2s as a safety net
+      const timeout = setTimeout(() => {
+        boardLockedRef.current = false;
+        setBoardLocked(false);
+      }, 2000);
       const newSelections = [...selectionsRef.current, item.label];
       selectionsRef.current = newSelections;
       const newCount = selectionCount + 1;
@@ -317,6 +332,11 @@ const ChoiceBoard = () => {
           setRewardOpen(false);
         }
       }
+
+      // Unlock board after notification completes (or timeout already did it)
+      clearTimeout(timeout);
+      boardLockedRef.current = false;
+      setBoardLocked(false);
     },
     [selectionCount]
   );
@@ -419,6 +439,7 @@ const ChoiceBoard = () => {
             showRationale={!!lastRationale}
             rationale={lastRationale || undefined}
             highContrast={highContrast}
+            disabled={!!activeCategory && boardLocked}
             onClick={
               !activeCategory
                 ? () => handleCategorySelect(item as Category)

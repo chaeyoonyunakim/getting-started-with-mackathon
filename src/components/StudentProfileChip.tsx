@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { UserRound, Pencil, LogOut } from "lucide-react";
+import { UserRound, Pencil } from "lucide-react";
 import { useStudent } from "@/contexts/StudentContext";
-import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,6 @@ import {
 
 const StudentProfileChip = () => {
   const { currentStudent, setCurrentStudent, isProfileSet } = useStudent();
-  const { user, signOut } = useAuth();
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
 
@@ -42,16 +40,6 @@ const StudentProfileChip = () => {
           <span className="max-w-[120px] truncate">{currentStudent}</span>
           <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
         </button>
-        {user && (
-          <button
-            onClick={signOut}
-            className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-full"
-            aria-label="Sign out"
-            title="Sign out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
 

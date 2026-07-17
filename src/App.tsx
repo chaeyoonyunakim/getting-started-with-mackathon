@@ -3,12 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
 import { StudentProvider } from "@/contexts/StudentContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
-import AuthPage from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
 import SettingsPage from "./pages/Settings";
 import ReviewSymbols from "./pages/ReviewSymbols";
 import SessionDetail from "./pages/SessionDetail";
@@ -22,47 +18,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <StudentProvider>
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/review-symbols"
-                element={
-                  <ProtectedRoute>
-                    <ReviewSymbols />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/sessions/:id"
-                element={
-                  <ProtectedRoute>
-                    <SessionDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </StudentProvider>
-        </AuthProvider>
+        <StudentProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/review-symbols" element={<ReviewSymbols />} />
+            <Route path="/sessions/:id" element={<SessionDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </StudentProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

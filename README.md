@@ -23,11 +23,8 @@ with pupils who had limited verbal speech.
   shadcn/ui, TanStack Query, `react-i18next` (en-GB).
 - **Backend**: Supabase (managed Postgres, Auth, Storage, Edge
   Functions on Deno) — provisioned via Lovable Cloud.
-- **AuthN/AuthZ**: Supabase Auth (email + password). Authorisation
-  enforced by Row-Level Security on every table, scoped through
-  `current_user_org()`. Role (`senco` / `ta`) lives on `profiles`,
-  protected by the `prevent_role_self_escalation` trigger and an RLS
-  policy that forbids self-escalation; checked in policies via `has_role()`.
+- **AuthN/AuthZ**: The frontend currently has no authentication layer. The `/auth` and `/reset-password` routes, `ProtectedRoute`, `useAuth`, and `AuthProvider` have been removed. The app loads straight into the public board. Backend Row-Level Security policies still reference `auth.uid()` and `has_role()` for any future authenticated use, but no sign-in flow is implemented in the current UI.
+
 - **Prediction engine**: Pure-SQL/TypeScript Markov + Thompson-sampling
   bandit running inside the `predictNextCards` Edge Function. **No
   external LLM is called at runtime.** Nightly bandit update via

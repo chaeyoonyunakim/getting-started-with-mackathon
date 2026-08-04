@@ -39,17 +39,15 @@ Row-level security:
 
 ```
 src/
-├── App.tsx                         Routes + providers; wraps protected routes in <ProtectedRoute>.
+├── App.tsx                         Routes + providers (no auth gate; all routes public).
 ├── main.tsx                        Vite entry.
 ├── pages/
-│   ├── Auth.tsx                    Email + password sign-in / sign-up.
-│   ├── Index.tsx                   Authenticated home: header + ChoiceBoard.
+│   ├── Index.tsx                   Home: header + ChoiceBoard.
 │   ├── Settings.tsx                SENCo settings: retention, depth, attribution, sessions list.
 │   ├── SessionDetail.tsx           Per-session timeline for SENCo review.
 │   ├── ReviewSymbols.tsx           SENCo queue for approving AI-generated symbols.
 │   └── NotFound.tsx
 ├── hooks/
-│   ├── useAuth.tsx                 Supabase session listener + signOut.
 │   ├── usePupilBoard.ts            React Query hook returning {coreItems, gridItems, rows, cols}.
 │   ├── useSession.ts               Session lifecycle (start, append selection, end).
 │   ├── useNextCardPredictions.ts   Calls predictNextCards Edge Function.

@@ -1,14 +1,18 @@
 # File Structure
 
-Top-level layout of the Choice Board pilot codebase. Kept in sync
-with the post-hardening repo (May 2026).
+Top-level layout of The Makaton pilot codebase. Kept in sync with the
+post-hardening repo (May 2026).
+
+> **Auth removed.** The frontend has no authentication: the `/auth` and `/reset-password` routes, the `ProtectedRoute` component, the `useAuth` hook, and the `AuthProvider` have all been removed. All board routes are public and access only pupil/session data chosen in the local UI. Any future authentication layer would require rewriting these UI components and backend policies; the current codebase does not support auth components.
+
 
 ## Database (Lovable Cloud / Supabase)
 
 | Table                    | Purpose                                                                 |
 |--------------------------|-------------------------------------------------------------------------|
 | `organisations`          | Schools / settings. All tenant data is scoped per `org_id`.             |
-| `profiles`               | One row per auth user. Holds `org_id`, `display_name`, and `role` (`senco` / `ta`). Role changes are gated by the `prevent_role_self_escalation` trigger; org reassignment by `prevent_org_self_reassignment`. |
+| `profiles`               | One row per staff user. Holds `org_id`, `display_name`, and `role` (`senco` / `ta`). **Not tied to Supabase Auth in the frontend:** the app no longer signs users in; role checks are still enforced by backend RLS policies for any future authenticated use. Role changes are gated by the `prevent_role_self_escalation` trigger; org reassignment by `prevent_org_self_reassignment`. |
+
 | `pupils`                 | Children using the board. `grid_size`, `depth_setting`, EHCP tags, `makaton_licensed`. |
 | `cards`                  | Shared symbol catalogue (`label`, `symbol_url`, `source`, `licence`).   |
 | `card_modifiers`         | Optional per-card modifier labels (e.g. tense, plural).                  |
@@ -27,19 +31,25 @@ with the post-hardening repo (May 2026).
 Row-level security:
 - Tenant tables filter on `current_user_org()` (`SECURITY DEFINER`, pinned `search_path`).
 - Role checks go through `public.has_role(auth.uid(), 'senco' | 'ta')` —
-  a `SECURITY DEFINER` function with pinned `search_path`. Role escalation
-  is blocked at the row level by the `Users update own profile` policy
-  (forbids changing `role` or `org_id`) and defensively by the
+  a `SECURITY DEFINER` function with pinned `search_path`. These policies
+  remain in place on the backend, but the frontend currently routes are
+  public and there is no auth gate. Any re-introduction of auth would need
+  to re-verify these policies against the chosen authentication flow.
+- Role escalation is blocked at the row level by the `Users update own profile`
+  policy (forbids changing `role` or `org_id`) and defensively by the
   `prevent_role_self_escalation` trigger.
-- `cards` is readable by any authenticated user.
+- `cards` is readable by any authenticated user (or by public/anonymous clients
+  if the backend is configured to allow them); the frontend fetches cards
+  without an auth barrier.
 - `mv_pupil_transitions` is revoked from API roles and read only via the
   service-role client inside `predictNextCards`.
+
 
 ## Frontend
 
 ```
 src/
-├── App.tsx                         Routes + providers (no auth gate; all routes public).
+├── App.tsx                         Routes + providers. No auth gate; no `/auth` or `/reset-password` routes; all routes public.
 ├── main.tsx                        Vite entry.
 ├── pages/
 │   ├── Index.tsx                   Home: header + ChoiceBoard.

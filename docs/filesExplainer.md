@@ -32,9 +32,10 @@ Row-level security:
 - Tenant tables filter on `current_user_org()` (`SECURITY DEFINER`, pinned `search_path`).
 - Role checks go through `public.has_role(auth.uid(), 'senco' | 'ta')` —
   a `SECURITY DEFINER` function with pinned `search_path`. These policies
-  remain in place on the backend, but the frontend currently routes are
+  remain in place on the backend, but the frontend routes are currently
   public and there is no auth gate. Any re-introduction of auth would need
   to re-verify these policies against the chosen authentication flow.
+
 - Role escalation is blocked at the row level by the `Users update own profile`
   policy (forbids changing `role` or `org_id`) and defensively by the
   `prevent_role_self_escalation` trigger.

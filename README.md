@@ -1,11 +1,12 @@
 [![status: experimental](https://github.com/GIScience/badges/raw/master/status/experimental.svg)](https://github.com/GIScience/badges#experimental)
 
-# The Choice Board
+# The Makaton
 
-A digital choice board for non-verbal and emerging-verbal pupils in UK
+A digital Makaton choice board for non-verbal and emerging-verbal pupils in UK
 SEN schools. Built mobile-first and tablet-optimised (iPad 10.2"
 primary). Symbol artwork is fetched from licensed open sources with a
 fallback chain that respects per-school licensing.
+
 
 This project was inspired by a Makaton lanyard given to the author during
 a short-term assistant work at a SEND school in London, 2022; each card

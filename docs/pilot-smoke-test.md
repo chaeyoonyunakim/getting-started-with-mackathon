@@ -12,11 +12,11 @@ pilot day. Tick each box as you go.
 - [ ] Brightness above 60%.
 - [ ] Volume turned down (the app does not need audio).
 
-## 1. Sign in
+## 1. Open the app
 
 1. Open the app URL bookmarked on the tablet home screen.
-2. Tap **Sign in** and enter your TA credentials.
-3. ✅ You see the pupil-selection screen within 5 seconds.
+2. ✅ The pupil-selection screen appears within 5 seconds. (There is no sign-in step; the app is open to the board.)
+
 
 ## 2. Start a session
 

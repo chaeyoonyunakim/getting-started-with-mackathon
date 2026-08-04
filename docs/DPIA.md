@@ -62,7 +62,7 @@ disabilities. Parents/carers informed via the school's privacy notice.
 | TA misuse of session data | Low | Medium | Audit log of dashboard views (post-pilot) |
 | Re-identification via selection patterns | Low | Medium | 90-day retention; aggregation removes pupil_id |
 | AI symbol returns an offensive image | Low (feature off by default) | High | `ENABLE_AI_SYMBOLS=false` default; SENCo review queue gates all AI output |
-| Pupil name shown to wrong TA | Low | Medium | Auth scoped to org; profile switching requires explicit selection |
+| Pupil name shown to wrong user | Low | Medium | No public auth layer currently; the app only displays data selected locally by the user in front of the device. Any future authentication would need to re-introduce per-org scoping and session isolation. |
 
 ## 6. Outcome
 

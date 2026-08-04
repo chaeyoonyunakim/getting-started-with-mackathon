@@ -6,6 +6,10 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+- Removed the frontend authentication layer entirely. `/auth` and `/reset-password` routes, `ProtectedRoute`, `useAuth`, and `AuthProvider` have been deleted. The app now loads the public board directly; docs updated to reflect that no auth components are supported.
+
+
 ## [0.2.1-pilot.1] — 2026-05-23
 
 ### Fixed

@@ -2,8 +2,9 @@
 
 > A digital Makaton choice board for SEND (Special Educational Needs and Disabilities) pupils and their teaching assistants. Picture-led, high-contrast cards with predictive suggestions and SENCo-managed pupil profiles.
 
-The app is a two-level grid (categories → sub-choices) optimised for accessible communication in UK classrooms.
+The app is a two-level grid (categories → sub-choices) optimised for accessible communication in UK classrooms. The frontend has no authentication layer: there are no sign-in routes, no auth guards, and no auth provider; the app is public and loads straight into the board.
 
 ## Pages
 
 - [Home](/): The choice board itself.
+

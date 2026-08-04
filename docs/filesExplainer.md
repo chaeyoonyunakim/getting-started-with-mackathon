@@ -58,7 +58,7 @@ src/
 ├── contexts/
 │   └── StudentContext.tsx          Selected pupil (display_name + id) for the session.
 ├── components/
-│   ├── ProtectedRoute.tsx          Redirects unauthenticated users to /auth.
+│   ├── SeoHead.tsx                 react-helmet-async wrapper (title / meta / JSON-LD).
 │   ├── SeoHead.tsx                 react-helmet-async wrapper (title / meta / JSON-LD).
 │   ├── ChoiceBoard.tsx             Orchestrator: greeting, AI fallback, rewards, interaction lock.
 │   ├── Header.tsx

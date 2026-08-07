@@ -39,15 +39,17 @@ Row-level security:
 
 ```
 src/
-├── App.tsx                         Routes + providers (auth layer removed — all routes public).
+├── App.tsx                         Routes + providers; wraps protected routes in <ProtectedRoute>.
 ├── main.tsx                        Vite entry.
 ├── pages/
-│   ├── Index.tsx                   Home: header + ChoiceBoard.
+│   ├── Auth.tsx                    Email + password sign-in / sign-up.
+│   ├── Index.tsx                   Authenticated home: header + ChoiceBoard.
 │   ├── Settings.tsx                SENCo settings: retention, depth, attribution, sessions list.
 │   ├── SessionDetail.tsx           Per-session timeline for SENCo review.
 │   ├── ReviewSymbols.tsx           SENCo queue for approving AI-generated symbols.
 │   └── NotFound.tsx
 ├── hooks/
+│   ├── useAuth.tsx                 Supabase session listener + signOut.
 │   ├── usePupilBoard.ts            React Query hook returning {coreItems, gridItems, rows, cols}.
 │   ├── useSession.ts               Session lifecycle (start, append selection, end).
 │   ├── useNextCardPredictions.ts   Calls predictNextCards Edge Function.
@@ -58,6 +60,7 @@ src/
 ├── contexts/
 │   └── StudentContext.tsx          Selected pupil (display_name + id) for the session.
 ├── components/
+│   ├── ProtectedRoute.tsx          Redirects unauthenticated users to /auth.
 │   ├── SeoHead.tsx                 react-helmet-async wrapper (title / meta / JSON-LD).
 │   ├── ChoiceBoard.tsx             Orchestrator: greeting, AI fallback, rewards, interaction lock.
 │   ├── Header.tsx

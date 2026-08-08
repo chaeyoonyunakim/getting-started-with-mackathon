@@ -77,6 +77,14 @@ Guards:
 - The push uses `--force-with-lease`, so it fails instead of clobbering work if
   the remote branch moved after the script read it.
 
+After a successful push the script verifies the result automatically: it
+re-reads `refs/heads/<branch>` from the remote (up to 5 attempts, 2s apart),
+fails with a non-zero exit if the remote head is not exactly the target commit,
+and then prints a diff summary — commits removed from the remote, commits
+added, and a `git diff --stat` between the previous remote head and the target.
+If the previous head is not present locally, it prints the target commit's own
+stat instead.
+
 Use it only when Lovable's GitHub sync has diverged and the remote history is
 known-bad. Disable branch protection on the target branch first if the push is
 rejected, and re-enable it afterwards.

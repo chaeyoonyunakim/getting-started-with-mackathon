@@ -12,7 +12,6 @@ post-hardening repo (May 2026).
 |--------------------------|-------------------------------------------------------------------------|
 | `organisations`          | Schools / settings. All tenant data is scoped per `org_id`.             |
 | `profiles`               | One row per staff user. Holds `org_id`, `display_name`, and `role` (`senco` / `ta`). **Not tied to Supabase Auth in the frontend:** the app no longer signs users in; role checks are still enforced by backend RLS policies for any future authenticated use. Role changes are gated by the `prevent_role_self_escalation` trigger; org reassignment by `prevent_org_self_reassignment`. |
-
 | `pupils`                 | Children using the board. `grid_size`, `depth_setting`, EHCP tags, `makaton_licensed`. |
 | `cards`                  | Shared symbol catalogue (`label`, `symbol_url`, `source`, `licence`).   |
 | `card_modifiers`         | Optional per-card modifier labels (e.g. tense, plural).                  |

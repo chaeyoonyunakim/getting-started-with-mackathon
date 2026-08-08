@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "force-sync": "bash scripts/force-sync-github.sh"
   },
   "dependencies": {
     "@lovable.dev/cloud-auth-js": "^1.1.2",

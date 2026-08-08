@@ -54,3 +54,29 @@ see. Continue to:
 - Manually review every new RLS policy and migration.
 - Run the in-app Lovable security scanner after schema changes.
 - Test policies with both SENCo and TA JWTs before shipping.
+
+## Authorized force sync to GitHub
+
+`scripts/force-sync-github.sh` overwrites a GitHub branch with the history in
+your local checkout. It is manual and local-only by design: no CI job, tool, or
+agent can invoke it, and it refuses to run unless you re-type the full target
+commit hash as confirmation.
+
+```bash
+git remote add github https://github.com/<owner>/<repo>.git   # once
+bun run force-sync <target-commit-sha> [branch] [remote]      # branch=main, remote=github
+```
+
+Guards:
+
+- The target commit must exist locally (`git rev-parse` check) — it never
+  pushes a hash it cannot resolve.
+- It prints the current remote head, the target commit, and its subject before
+  asking for confirmation.
+- Confirmation must be the **full** 40-character SHA; anything else aborts.
+- The push uses `--force-with-lease`, so it fails instead of clobbering work if
+  the remote branch moved after the script read it.
+
+Use it only when Lovable's GitHub sync has diverged and the remote history is
+known-bad. Disable branch protection on the target branch first if the push is
+rejected, and re-enable it afterwards.
